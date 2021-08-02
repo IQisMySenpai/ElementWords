@@ -1,5 +1,6 @@
 import json
 import concurrent.futures
+import datetime
 
 with open('elements.json', 'r') as element_file:
     elements = json.load(element_file)
@@ -85,9 +86,24 @@ def small_brain_algorithm(word=''):
     # Checks each element if it is contained in the word.
     for element in elements:
         # If a element is in the word add the length to the total and append it to a list.
-        if element in word:
-            word_possible_elements_len += len(element)
+        pos = word.find(element, 0)
+        # Create a fail_safe just in case
+        fail_safe = 0
+        if pos >= 0:
             word_possible_elements.append(element)
+
+        while fail_safe < 100:
+            # Break if no new occurrence is found
+            if pos < 0:
+                break
+
+            fail_safe += 1
+
+            # Add to the list at the position of the position
+            word_possible_elements_len += len(element)
+
+            # Check for a new occurrence later in the word
+            pos = word.find(element, pos + len(element))
 
     # If the total char of the elements is smaller than the word return None
     if len(word) > word_possible_elements_len:
@@ -108,7 +124,6 @@ def big_brain_filter(input_words=None):
     input_length = len(input_words)
     print(f'\nBig Brain Filtering {input_length} words...\n')
 
-    # Start multiprocessing the words
     with concurrent.futures.ProcessPoolExecutor() as executor:
         output_words = executor.map(big_brain_algorithm, input_words)
 
@@ -175,8 +190,8 @@ def big_brain_recursive(word_len, element_positions, pos):
             continue
 
         # A safety which should never be run. Checks if the element surpasses the len of the word
-        # if pos + len(element) > word_len:
-        #     continue
+        if pos + len(element) > word_len:
+            continue
 
         # If there is no element at the next position, continue
         if len(element_positions[pos + len(element)]) < 1:
@@ -200,13 +215,16 @@ def big_brain_recursive(word_len, element_positions, pos):
 
 
 if __name__ == '__main__':
-    with open('words.txt', 'r') as word_file:
+    st
+    print(f"Starting at {datetime.datetime.now()}")
+
+    with open('words_alpha.txt', 'r') as word_file:
         words = word_file.readlines()
         word_file.close()
 
     big_dict = big_brain_filter(small_brain_filter(sanitise_words(words)))
 
-    with open('output.txt', 'a') as output_file:
+    with open('Output_All_English_Words.txt', 'a') as output_file:
         keys = list(big_dict.keys())
         keys.sort()
         for key in keys:
